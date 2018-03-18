@@ -1,8 +1,6 @@
 raw-recipe
 ==========
 
-This is a collection of Bash scripts, which are used to better cook RAW files from camera.
-
 ## cook-raw.sh
 
 A script to combine raw file and jpg file into a editable jpg file
@@ -10,6 +8,11 @@ A script to combine raw file and jpg file into a editable jpg file
 - Generate jpg file which includes jpg and raw file: by default, **./jpg** contains converted jpg files; **./final** contains combined jpg file.
 ```
 ~$ cook-raw.sh cook
+```
+
+- Generate jpg file which includes jpg, raw file and editor process file (let's call it recipe)
+```
+~$ cook-raw.sh cooked
 ```
 
 - Check generated jpg file is well cooked or not
@@ -22,13 +25,22 @@ A script to combine raw file and jpg file into a editable jpg file
 ~$ cook-raw.sh clean
 ```
 
-- Cook + Check
+- Only convert raw to jpg
 ```
-~$ cook-raw.sh
+~$ cook-raw.sh fry
 ```
-## uncook-raw.sh
 
-A script to extract raw file from editable jpg. A folder **./raw** will be created with all extracted raw files.
+- Only zip files
 ```
-~$ uncook-raw.sh
+~$ cook-raw.sh wrap
+```
+
+- Only create new editable jpg
+```
+~$ cook-raw.sh mix
+```
+
+- Extract raw file from editable jpg. A folder **./raw** will be created with all extracted raw files.
+```
+~$ cook-raw.sh unwrap
 ```
