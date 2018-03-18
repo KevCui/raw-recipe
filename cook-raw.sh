@@ -1,6 +1,6 @@
 #/bin/bash
 _RAW_PATH=`pwd`
-_RAW_FORMAT="CR2"
+_RAW_SUFFIX="CR2"
 _JPG_QUALITY=85
 _JPG_OUTPUT="./jpg"
 _ZIP_OUTPUT="./zip"
@@ -15,7 +15,7 @@ function isCommandExist() {
     fi
 }
 
-total=`ls *.${_RAW_FORMAT} | wc -w`
+total=`ls *.${_RAW_SUFFIX} | wc -w`
 
 # generate final jpg file
 if [[ "$1" == "cook" || "$1" == "" ]];then
@@ -28,7 +28,7 @@ if [[ "$1" == "cook" || "$1" == "" ]];then
     mkdir -p $_FINAL_OUTPUT
 
     n=1
-    for i in *.${_RAW_FORMAT}; do
+    for i in *.${_RAW_SUFFIX}; do
         raw=$i
         jpg=${_JPG_OUTPUT}/$i.jpg
         zip=${_ZIP_OUTPUT}/$i.zip
@@ -60,7 +60,7 @@ if [[ "$1" == "check" || "$1" == "" ]];then
     > $md5sum
 
     n=1
-    for i in *.${_RAW_FORMAT}; do
+    for i in *.${_RAW_SUFFIX}; do
         raw=$i
         raw_unzip=${_CHECK_OUTPUT}/$i
         final=${_FINAL_OUTPUT}/${i}-final.jpg
