@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 _EDITABLE_SUFFIX=".jpg"
 _RAW_PATH='./raw'

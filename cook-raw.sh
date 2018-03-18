@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 _RAW_PATH=`pwd`
 _RAW_SUFFIX=".CR2"
