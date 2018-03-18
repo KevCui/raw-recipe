@@ -12,24 +12,32 @@ _FINAL_OUTPUT='./final'
 _CHECK_OUTPUT="./check"
 _MD5SUM_FILE="md5sum"
 
-function isExist() {
+function isCommandExist() {
     if [ ! `command -v $1` ]; then
         echo "$1 command doesn't exist!"
         exit 1
     fi
 }
 
+function isFolderExist() {
+    if [ ! -d  "$1" ]; then
+        echo "$1 doesn't exist!"
+        exit 1
+    fi
+}
+
 # Generate jpg file
 function fry() {
-	isExist "dcraw"
-	isExist "cjpeg"
+	isCommandExist "dcraw"
+	isCommandExist "cjpeg"
 
 	mkdir -p $_JPG_OUTPUT
 
 	n=1
 	for i in *${_RAW_SUFFIX}; do
 		raw=$i
-		jpg=${_JPG_OUTPUT}/$i.jpg
+        basename=$(basename "$i" "$_RAW_SUFFIX")
+        jpg=${_JPG_OUTPUT}/${basename}.jpg
 		total=`ls *${_RAW_SUFFIX} | wc -w`
 
 		echo "$n/$total Progressing file $raw..."
@@ -43,22 +51,29 @@ function fry() {
 
 # Create zip file
 function wrap() {
-	isExist "zip"
+	isCommandExist "zip"
 
 	mkdir -p $_ZIP_OUTPUT
 
     n=1
     for i in *${_RAW_SUFFIX}; do
         raw=$i
-		recipe=${i}${_RECIPE_SUFFIX}
-        jpg=${_JPG_OUTPUT}/$i.jpg
-        zip=${_ZIP_OUTPUT}/$i.zip
-		total=`ls *${_RAW_SUFFIX} | wc -w`
+        recipe=${i}${_RECIPE_SUFFIX}
+        basename=$(basename "$i" "$_RAW_SUFFIX")
+        jpg=${_JPG_OUTPUT}/${basename}.jpg
+        zip=${_ZIP_OUTPUT}/${basename}.zip
+        total=`ls *${_RAW_SUFFIX} | wc -w`
+        action=true
 
         echo "$n/$total Ziping file $raw..."
 
-        # create zip including raw, jpg and editor file
-        zip $zip $raw $jpg $recipe
+        if [[ "$1" == "" ]]; then
+            zip -j $zip $raw $jpg
+        elif [[ "$1" == "recipe" && -f "$recipe" ]]; then
+            zip -j $zip $raw $jpg $recipe
+        else
+            echo "Skip $raw"
+        fi
 
         n=$((n+1))
     done
@@ -71,9 +86,10 @@ function mix() {
     n=1
     for i in *${_RAW_SUFFIX}; do
         raw=$i
-        jpg=${_JPG_OUTPUT}/$i.jpg
-        zip=${_ZIP_OUTPUT}/$i.zip
-        final=${_FINAL_OUTPUT}/$(basename "$i" "${_RAW_SUFFIX}")-editable${1}.jpg
+        basename=$(basename "$i" "$_RAW_SUFFIX")
+        jpg=${_JPG_OUTPUT}/${basename}.jpg
+        zip=${_ZIP_OUTPUT}/${basename}.zip
+        final=${_FINAL_OUTPUT}/${basename}-editable${1}.jpg
 		total=`ls *${_RAW_SUFFIX} | wc -w`
 
         echo "$n/$total Mixing file $raw..."
@@ -88,8 +104,8 @@ function mix() {
 
 # Check cooked file
 function check() {
-    isExist "unzip"
-    isExist "md5sum"
+    isCommandExist "unzip"
+    isCommandExist "md5sum"
 
     mkdir -p $_CHECK_OUTPUT
 
@@ -99,8 +115,8 @@ function check() {
     n=1
     for i in *${_RAW_SUFFIX}; do
         raw=$i
-        raw_unzip=${_CHECK_OUTPUT}/$i
-        final=${_FINAL_OUTPUT}/$(basename "$i" "$_RAW_SUFFIX")-editable.jpg
+        basename=$(basename "$i" "$_RAW_SUFFIX")
+        final=${_FINAL_OUTPUT}/${basename}-editable.jpg
 		total=`ls *${_RAW_SUFFIX} | wc -w`
 
         echo "$n/$total Preparing file $raw..."
@@ -123,7 +139,7 @@ function check() {
 
 # Extract raw files
 function unwrap() {
-	isExist "unzip"
+	isCommandExist "unzip"
 
 	mkdir $_RAW_OUTPUT
 
@@ -136,7 +152,7 @@ function unwrap() {
 	done
 
 	# clean redundant jpg files
-	rm -rf ${_RAW_OUTPUT}/jpg
+	rm -rf ${_RAW_OUTPUT}/*.jpg
 }
 
 # Remove temporary folders
