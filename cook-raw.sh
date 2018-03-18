@@ -1,4 +1,5 @@
 #/bin/bash
+
 _RAW_PATH=`pwd`
 _RAW_SUFFIX=".CR2"
 _JPG_QUALITY=85

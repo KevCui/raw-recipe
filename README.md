@@ -26,3 +26,9 @@ A script to combine raw file and jpg file into a editable jpg file
 ```
 ~$ cook-raw.sh
 ```
+## uncook-raw.sh
+
+A script to extract raw file from editable jpg. A folder **./raw** will be created with all extracted raw files.
+```
+~$ uncook-raw.sh
+```
