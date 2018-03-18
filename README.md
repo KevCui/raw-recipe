@@ -1,7 +1,7 @@
-raw-secret
+raw-recipe
 ==========
 
-This is a collection of Bash scripts, which are used to edit raw files
+This is a collection of Bash scripts, which are used to better cook RAW files from camera.
 
 ### cook-raw.sh
 
