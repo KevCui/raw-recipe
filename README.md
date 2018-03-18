@@ -5,7 +5,7 @@ This is a collection of Bash scripts, which are used to better cook RAW files fr
 
 ## cook-raw.sh
 
-A script to combine raw file and jpg file into a final jpg file
+A script to combine raw file and jpg file into a editable jpg file
 
 - Generate jpg file which includes jpg and raw file: by default, **./jpg** contains converted jpg files; **./final** contains combined jpg file.
 ```

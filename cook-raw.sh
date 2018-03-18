@@ -32,7 +32,7 @@ if [[ "$1" == "cook" || "$1" == "" ]];then
         raw=$i
         jpg=${_JPG_OUTPUT}/$i.jpg
         zip=${_ZIP_OUTPUT}/$i.zip
-        final=${_FINAL_OUTPUT}/${i}-final.jpg
+        final=${_FINAL_OUTPUT}/$(basename "$i" "$_RAW_SUFFIX")-editable.jpg
 
         echo "$n/$total Progressing file $raw..."
 
@@ -63,7 +63,7 @@ if [[ "$1" == "check" || "$1" == "" ]];then
     for i in *.${_RAW_SUFFIX}; do
         raw=$i
         raw_unzip=${_CHECK_OUTPUT}/$i
-        final=${_FINAL_OUTPUT}/${i}-final.jpg
+        final=${_FINAL_OUTPUT}/$(basename "$i" "$_RAW_SUFFIX")-editable.jpg
 
         echo "$n/$total Preparing file $raw..."
 
