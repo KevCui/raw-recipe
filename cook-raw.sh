@@ -259,13 +259,16 @@ if [[ "$1" == "test" ]]; then
         [[ `md5sum "$1" | awk '{print $1}'` == "$2" ]] && echo "CHECK $3: [PASS] $1 md5sum" || echo "CHECK $3: [F***] $1 md5sum"
     }
 
-    # preparation
+    # Preparation
     mkdir -p test
     cd test
     rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} ${_FINAL_OUTPUT} 2>/dev/null
     echo "001.raw" > IMG_001${_RAW_EXTENSION}
     echo "002.raw" > IMG_002${_RAW_EXTENSION}
     echo "002.raw.cooked" > IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}
+
+    [ `setExtension "new"` == "${_RAW_EXTENSION}${_RECIPE_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
+    [ `setExtension ` == "${_RAW_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
 
     fry 1> /dev/null 2> /dev/null
     checkFileExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 01
