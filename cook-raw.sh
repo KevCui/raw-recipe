@@ -323,5 +323,13 @@ if [[ "$1" == "test" ]]; then
     checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 34
     checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 35
 
+    cd ${_FINAL_OUTPUT}
+    unwrap 1> /dev/null 2> /dev/null
+    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 36
+    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 37
+    checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION} 38
+    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 39
+    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 40
+
     cd ${_CURRENT_PATH}
 fi
