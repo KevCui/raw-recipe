@@ -159,6 +159,7 @@ function check() {
 
     # checsum comparision
     cd $_CHECK_OUTPUT
+
     echo -e "\nChecking files in `pwd`..."
     md5sum -c ${_MD5SUM_FILE}
     cd $_CURRENT_PATH
@@ -292,47 +293,49 @@ if [[ "$1" == "test" ]]; then
     checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION} 12
     checkmd5sum ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} "92489c7597f2eac4731a3e21ab8f28ba" 13
     checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 14
+    checkmd5sum ${_CHECK_OUTPUT}/md5sum "7680e1205ea004a77df4ce44f5ad353e" 15
 
     clean 1> /dev/null 2> /dev/null
-    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 15
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 16
-    checkFolderNotExist ${_JPG_OUTPUT} 17
-    checkFolderNotExist ${_ZIP_OUTPUT} 18
-    checkFolderNotExist ${_CHECK_OUTPUT} 19
+    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 16
+    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 17
+    checkFolderNotExist ${_JPG_OUTPUT} 18
+    checkFolderNotExist ${_ZIP_OUTPUT} 19
+    checkFolderNotExist ${_CHECK_OUTPUT} 20
 
     rm -r ${_FINAL_OUTPUT} 2>/dev/null
     fry "recipe" 1> /dev/null 2> /dev/null
-    checkFileNotExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 20
-    checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION} 21
+    checkFileNotExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 21
+    checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION} 22
 
     wrap "recipe" 1> /dev/null 2> /dev/null
-    checkFileNotExist ${_ZIP_OUTPUT}/IMG_001.zip 22
-    checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip 23
+    checkFileNotExist ${_ZIP_OUTPUT}/IMG_001.zip 23
+    checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip 24
 
     mix "-cooked" 1> /dev/null 2> /dev/null
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 24
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 25
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 26
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 27
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 25
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 26
+    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 27
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 28
 
     check "-cooked" 1> /dev/null 2> /dev/null
     cd test
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 28
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION} 29
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 30
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 31
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_JPG_EXTENSION} 32
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION} 33
-    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 34
-    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 35
+    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 29
+    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION} 30
+    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 31
+    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 32
+    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_JPG_EXTENSION} 33
+    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION} 34
+    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 35
+    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 36
+    checkmd5sum ${_CHECK_OUTPUT}/md5sum "7ea84f0f49a4b4055315d9ba66b828d6" 37
 
     cd ${_FINAL_OUTPUT}
     unwrap 1> /dev/null 2> /dev/null
-    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 36
-    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 37
-    checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION} 38
-    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 39
-    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 40
+    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 38
+    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 39
+    checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION} 40
+    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 41
+    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 42
 
     cd ${_CURRENT_PATH}
 fi
