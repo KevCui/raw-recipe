@@ -200,6 +200,7 @@ if [[ "$1" == "cook" || "$1" == "" ]];then
 	wrap
 	mix
 	check
+    clean
 fi
 
 if [[ "$1" == "cooked" ]]; then
@@ -208,6 +209,7 @@ if [[ "$1" == "cooked" ]]; then
     wrap "recipe"
     mix "-cooked"
     check "-cooked"
+    clean
 fi
 
 if [[ "$1" == "fry" ]]; then
