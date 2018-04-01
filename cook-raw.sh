@@ -60,7 +60,7 @@ function fry() {
 		echo "$n/$total Progressing file $raw..."
 
 		# convert raw to jpg
-		dcraw -c "$raw" | cjpeg -quality $_JPG_QUALITY -optimize -progressive > $(echo $jpg);
+		dcraw -c -w "$raw" | cjpeg -quality $_JPG_QUALITY -optimize -progressive > $(echo $jpg);
 
 		n=$((n+1))
 	done
