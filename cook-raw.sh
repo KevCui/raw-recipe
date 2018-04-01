@@ -17,6 +17,8 @@ _ZIP_OUTPUT="./zip"
 _FINAL_OUTPUT='./final'
 _CHECK_OUTPUT="./check"
 _MD5SUM_FILE="md5sum"
+_FILE_SELECTED="\'\'"
+_TEST_PATH="${_CURRENT_PATH}/test"
 
 ###################
 #
@@ -50,9 +52,9 @@ function fry() {
 	mkdir -p $_JPG_OUTPUT
 
     extension=`setExtension $1`
-    total=`ls *${extension} | wc -w`
+    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
 	n=1
-	for i in *${extension}; do
+	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
@@ -74,9 +76,9 @@ function wrap() {
 	mkdir -p $_ZIP_OUTPUT
 
     extension=`setExtension $1`
-    total=`ls *${extension} | wc -w`
+    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
     n=1
-    for i in *${extension}; do
+	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         recipe=${basename}${_RAW_EXTENSION}${_RECIPE_EXTENSION}
@@ -104,9 +106,9 @@ function mix() {
 	mkdir -p $_FINAL_OUTPUT
 
     extension=`setExtension $1`
-    total=`ls *${extension} | wc -w`
+    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
     n=1
-    for i in *${extension}; do
+	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
@@ -135,9 +137,9 @@ function check() {
     > $md5sum
 
     extension=`setExtension $1`
-    total=`ls *${extension} | wc -w`
+    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
     n=1
-    for i in *${extension}; do
+	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         recipe=${basename}${_RAW_EXTENSION}${_RECIPE_EXTENSION}
@@ -162,7 +164,7 @@ function check() {
 
     echo -e "\nChecking files in `pwd`..."
     md5sum -c ${_MD5SUM_FILE}
-    cd $_CURRENT_PATH
+    cd ..
 }
 
 # Extract raw files
@@ -185,7 +187,46 @@ function unwrap() {
 
 # Remove temporary folders
 function clean() {
-     rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} 2> /dev/null
+    rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} 2> /dev/null
+}
+
+function cook() {
+    clean
+	fry
+	wrap
+	mix
+	check
+    clean
+}
+
+function cookRecipe() {
+    clean
+    fry "recipe"
+    wrap "recipe"
+    mix "-cooked"
+    check "-cooked"
+    clean
+}
+
+function cookOneFile() {
+    if [ ! -f "$1" ]; then
+        echo "$1 doesn't exist."
+        exit 1
+    fi
+
+    _FILE_SELECTED="$1"
+    extension=".${1##*.}"
+
+    if [ "$extension" == "$_RAW_EXTENSION" ]; then
+        cook
+    elif [ "$extension" == "$_RECIPE_EXTENSION" ]; then
+        cookRecipe
+    else
+        echo "Unsupport file type $extension"
+        exit 1
+    fi
+
+    _FILE_SELECTED="\'\'"
 }
 
 ###################
@@ -195,21 +236,15 @@ function clean() {
 ###################
 
 if [[ "$1" == "cook" || "$1" == "" ]];then
-    clean
-	fry
-	wrap
-	mix
-	check
-    clean
+    cook
 fi
 
 if [[ "$1" == "cooked" ]]; then
-    clean
-    fry "recipe"
-    wrap "recipe"
-    mix "-cooked"
-    check "-cooked"
-    clean
+    cookRecipe
+fi
+
+if [[ "$1" == "cookfile" ]];then
+    cookOneFile $2
 fi
 
 if [[ "$1" == "fry" ]]; then
@@ -262,10 +297,18 @@ if [[ "$1" == "test" ]]; then
         [[ `md5sum "$1" | awk '{print $1}'` == "$2" ]] && echo "CHECK $3: [PASS] $1 md5sum" || echo "CHECK $3: [F***] $1 md5sum"
     }
 
+    function removeAll() {
+        rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} ${_FINAL_OUTPUT} 2>/dev/null
+    }
+
+    function silenceRun() {
+        $@ 1>/dev/null 2>/dev/null
+    }
+
     # Preparation
-    mkdir -p test
-    cd test
-    rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} ${_FINAL_OUTPUT} 2>/dev/null
+    mkdir -p $_TEST_PATH
+    cd $_TEST_PATH
+    removeAll
     echo "001.raw" > IMG_001${_RAW_EXTENSION}
     echo "002.raw" > IMG_002${_RAW_EXTENSION}
     echo "002.raw.cooked" > IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}
@@ -273,20 +316,23 @@ if [[ "$1" == "test" ]]; then
     [ `setExtension "new"` == "${_RAW_EXTENSION}${_RECIPE_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
     [ `setExtension ` == "${_RAW_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
 
-    fry 1> /dev/null 2> /dev/null
+    # TEST fry
+    silenceRun fry
     checkFileExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 01
     checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION} 02
 
-    wrap 1> /dev/null 2> /dev/null
+    # TEST wrap
+    silenceRun wrap
     checkFileExist ${_ZIP_OUTPUT}/IMG_001.zip 03
     checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip 04
 
-    mix 1> /dev/null 2> /dev/null
+    # TEST mix
+    silenceRun mix
     checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 05
     checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 06
 
-    check 1> /dev/null 2> /dev/null
-    cd test
+    # TEST check
+    silenceRun check
     checkFileExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 07
     checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION} 08
     checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 09
@@ -297,30 +343,34 @@ if [[ "$1" == "test" ]]; then
     checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 14
     checkmd5sum ${_CHECK_OUTPUT}/md5sum "7680e1205ea004a77df4ce44f5ad353e" 15
 
-    clean 1> /dev/null 2> /dev/null
+    # TEST clean
+    silenceRun clean
     checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 16
     checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 17
     checkFolderNotExist ${_JPG_OUTPUT} 18
     checkFolderNotExist ${_ZIP_OUTPUT} 19
     checkFolderNotExist ${_CHECK_OUTPUT} 20
 
-    rm -r ${_FINAL_OUTPUT} 2>/dev/null
-    fry "recipe" 1> /dev/null 2> /dev/null
+    # TEST fry $1
+    removeAll
+    silenceRun fry "recipe"
     checkFileNotExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 21
     checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION} 22
 
-    wrap "recipe" 1> /dev/null 2> /dev/null
+    # TEST wrap $1
+    silenceRun wrap "recipe"
     checkFileNotExist ${_ZIP_OUTPUT}/IMG_001.zip 23
     checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip 24
 
-    mix "-cooked" 1> /dev/null 2> /dev/null
+    # TEST mix $1
+    silenceRun mix "-cooked"
     checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 25
     checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 26
     checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 27
     checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 28
 
-    check "-cooked" 1> /dev/null 2> /dev/null
-    cd test
+    # TEST check $1
+    silenceRun check "-cooked"
     checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 29
     checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION} 30
     checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 31
@@ -331,13 +381,57 @@ if [[ "$1" == "test" ]]; then
     checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 36
     checkmd5sum ${_CHECK_OUTPUT}/md5sum "7ea84f0f49a4b4055315d9ba66b828d6" 37
 
+    # TEST unwrap
     cd ${_FINAL_OUTPUT}
-    unwrap 1> /dev/null 2> /dev/null
+    silenceRun unwrap
     checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 38
     checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 39
     checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION} 40
     checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 41
     checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 42
+    cd ${_TEST_PATH}
 
-    cd ${_CURRENT_PATH}
+    # TEST cookOneFile raw file
+    removeAll
+    silenceRun cookOneFile "IMG_001${_RAW_EXTENSION}"
+    checkFolderNotExist ${_JPG_OUTPUT} 43
+    checkFolderNotExist ${_ZIP_OUTPUT} 44
+    checkFolderNotExist ${_CHECK_OUTPUT} 45
+    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 46
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 47
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 48
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 49
+
+    # TEST cookOneFile recipe file
+    removeAll
+    silenceRun cookOneFile "IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}"
+    checkFolderNotExist ${_JPG_OUTPUT} 50
+    checkFolderNotExist ${_ZIP_OUTPUT} 51
+    checkFolderNotExist ${_CHECK_OUTPUT} 52
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 53
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 54
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 55
+    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 56
+
+    # TEST cook
+    removeAll
+    silenceRun cook
+    checkFolderNotExist ${_JPG_OUTPUT} 57
+    checkFolderNotExist ${_ZIP_OUTPUT} 58
+    checkFolderNotExist ${_CHECK_OUTPUT} 59
+    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 60
+    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 61
+
+    # TEST cookRecipe
+    removeAll
+    silenceRun cookRecipe
+    checkFolderNotExist ${_JPG_OUTPUT} 63
+    checkFolderNotExist ${_ZIP_OUTPUT} 64
+    checkFolderNotExist ${_CHECK_OUTPUT} 65
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 66
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 67
+    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 68
+    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 69
+
+    echo "DONE"
 fi
