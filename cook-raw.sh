@@ -235,47 +235,30 @@ function cookOneFile() {
 #
 ###################
 
-if [[ "$1" == "cook" || "$1" == "" ]];then
-    cook
-fi
+[[ "$1" == "cook" || "$1" == "" ]] && cook
 
-if [[ "$1" == "cooked" ]]; then
-    cookRecipe
-fi
+[[ "$1" == "cooked" ]] && cookRecipe
 
-if [[ "$1" == "cookfile" ]];then
-    cookOneFile $2
-fi
+[[ "$1" == "cookfile" ]] && cookOneFile $2
 
-if [[ "$1" == "fry" ]]; then
-    fry $2
-fi
+[[ "$1" == "fry" ]] && fry $2
 
-if [[ "$1" == "wrap" ]]; then
-    wrap $2
-fi
+[[ "$1" == "wrap" ]] && wrap $2
 
-if [[ "$1" == "mix" ]]; then
-    mix $2
-fi
+[[ "$1" == "mix" ]] && mix $2
 
-if [[ "$1" == "check" ]]; then
-    check $2
-fi
+[[ "$1" == "check" ]] && check $2
 
-if [[ "$1" == "clean" ]]; then
-	clean
-fi
+[[ "$1" == "clean" ]] && clean
 
-if [[ "$1" == "unwrap" ]]; then
-    unwrap
-fi
+[[ "$1" == "unwrap" ]] && unwrap
 
 ###################
 #
 # TESTS
 #
 ###################
+
 if [[ "$1" == "test" ]]; then
     function checkFileExist() {
         [ -f "$1" ] && echo "CHECK $2: [PASS] $1 exists" || echo "CHECK $2: [F***] $1 doesn't exist"
