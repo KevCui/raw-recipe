@@ -174,7 +174,7 @@ function unwrap() {
 
 	mkdir $_RAW_OUTPUT
 
-	total=`ls *{_JPG_EXTENSION} | wc -w`
+	total=`ls *${_JPG_EXTENSION} | wc -w`
 	n=1
 	for i in *${_JPG_EXTENSION}; do
 		echo "$n/$total Extract file $i..."
