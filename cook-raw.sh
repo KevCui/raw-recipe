@@ -6,7 +6,7 @@
 #
 ###################
 
-_CURRENT_PATH=`pwd`
+_CURRENT_PATH="$(pwd)"
 _RAW_EXTENSION=".CR2"
 _RECIPE_EXTENSION=".xmp"
 _JPG_EXTENSION=".jpg"
@@ -17,7 +17,7 @@ _ZIP_OUTPUT="./zip"
 _FINAL_OUTPUT='./final'
 _CHECK_OUTPUT="./check"
 _MD5SUM_FILE="md5sum"
-_FILE_SELECTED="\'\'"
+_FILE_SELECTED=""
 _TEST_PATH="${_CURRENT_PATH}/test"
 
 ###################
@@ -28,7 +28,7 @@ _TEST_PATH="${_CURRENT_PATH}/test"
 
 # Check if command exist
 function isCommandExist() {
-    if [ ! `command -v $1` ]; then
+    if [ ! "$(command -v "$1")" ]; then
         echo "$1 command doesn't exist!"
         exit 1
     fi
@@ -43,6 +43,11 @@ function setExtension() {
     fi
 }
 
+# Find file has certain extension and file name
+function findFile() {
+    find ./*"$1" -maxdepth 1 -type f | grep "$2"
+}
+
 # Generate jpg file
 function fry() {
     echo "::FRY::"
@@ -51,10 +56,10 @@ function fry() {
 
 	mkdir -p $_JPG_OUTPUT
 
-    extension=`setExtension $1`
-    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
+    extension=$(setExtension "$1")
+    total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
 	n=1
-	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
+	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
@@ -62,7 +67,7 @@ function fry() {
 		echo "$n/$total Progressing file $raw..."
 
 		# convert raw to jpg
-		dcraw -c -w "$raw" | cjpeg -quality $_JPG_QUALITY -optimize -progressive > $(echo $jpg);
+		dcraw -c -w "$raw" | cjpeg -quality $_JPG_QUALITY -optimize -progressive > "$jpg";
 
 		n=$((n+1))
 	done
@@ -75,23 +80,22 @@ function wrap() {
 
 	mkdir -p $_ZIP_OUTPUT
 
-    extension=`setExtension $1`
-    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
+    extension=$(setExtension "$1")
+    total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
     n=1
-	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
+	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         recipe=${basename}${_RAW_EXTENSION}${_RECIPE_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
         zip=${_ZIP_OUTPUT}/${basename}.zip
-        action=true
 
         echo "$n/$total Ziping file $raw..."
 
         if [[ "$1" == "" ]]; then
-            zip -j $zip $raw $jpg
+            zip -j "$zip" "$raw" "$jpg"
         elif [[ "$1" != "" && -f "$recipe" ]]; then
-            zip -j $zip $raw $jpg $recipe
+            zip -j "$zip" "$raw" "$jpg" "$recipe"
         else
             echo "Skip $raw"
         fi
@@ -105,10 +109,10 @@ function mix() {
     echo "::MIX::"
 	mkdir -p $_FINAL_OUTPUT
 
-    extension=`setExtension $1`
-    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
+    extension=$(setExtension "$1")
+    total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
     n=1
-	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
+	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
@@ -118,11 +122,10 @@ function mix() {
         echo "$n/$total Mixing file $raw..."
 
         # create final jpg
-        cat $jpg $zip > $final
+        cat "$jpg" "$zip" > "$final"
 
         n=$((n+1))
     done
-
 }
 
 # Check cooked file
@@ -134,12 +137,12 @@ function check() {
     mkdir -p $_CHECK_OUTPUT
 
     md5sum=${_CHECK_OUTPUT}/${_MD5SUM_FILE}
-    > $md5sum
+    true > $md5sum
 
-    extension=`setExtension $1`
-    total=`ls *${extension} | grep $_FILE_SELECTED | wc -w`
+    extension=$(setExtension "$1")
+    total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
     n=1
-	for i in `ls *${extension} | grep $_FILE_SELECTED`; do
+	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         recipe=${basename}${_RAW_EXTENSION}${_RECIPE_EXTENSION}
@@ -148,21 +151,21 @@ function check() {
         echo "$n/$total Preparing file $raw..."
 
         # create md5sum file
-        md5sum $raw >> $md5sum
+        md5sum "$raw" >> $md5sum
         if [ "$1" != "" ]; then
-            md5sum $recipe >> $md5sum
+            md5sum "$recipe" >> $md5sum
         fi
 
         # unzip raw files
-        unzip $final -d ${_CHECK_OUTPUT} 2> /dev/null
+        unzip "$final" -d ${_CHECK_OUTPUT} 2> /dev/null
 
         n=$((n+1))
     done
 
     # checsum comparision
-    cd $_CHECK_OUTPUT
+    cd "$_CHECK_OUTPUT" || return
 
-    echo -e "\nChecking files in `pwd`..."
+    echo -e "\\nChecking files in $(pwd)..."
     md5sum -c ${_MD5SUM_FILE}
     cd ..
 }
@@ -174,15 +177,15 @@ function unwrap() {
 
 	mkdir $_RAW_OUTPUT
 
-	total=`ls *${_JPG_EXTENSION} | wc -w`
-	n=1
-	for i in *${_JPG_EXTENSION}; do
+    total=$(findFile "$_JPG_EXTENSION" "" | wc -w)
+    n=1
+	for i in $(findFile "$_JPG_EXTENSION" ""); do
 		echo "$n/$total Extract file $i..."
-		unzip $i -d $_RAW_OUTPUT 2> /dev/null
+		unzip "$i" -d $_RAW_OUTPUT 2> /dev/null
 		n=$((n+1))
 	done
 	# clean redundant jpg files
-	rm -rf ${_RAW_OUTPUT}/*${_JPG_EXTENSION}
+	rm -rf ${_RAW_OUTPUT:?}/*${_JPG_EXTENSION}
 }
 
 # Remove temporary folders
@@ -226,7 +229,7 @@ function cookOneFile() {
         exit 1
     fi
 
-    _FILE_SELECTED="\'\'"
+    _FILE_SELECTED=""
 }
 
 ###################
@@ -239,15 +242,15 @@ function cookOneFile() {
 
 [[ "$1" == "cooked" ]] && cookRecipe
 
-[[ "$1" == "cookfile" ]] && cookOneFile $2
+[[ "$1" == "cookfile" ]] && cookOneFile "$2"
 
-[[ "$1" == "fry" ]] && fry $2
+[[ "$1" == "fry" ]] && fry "$2"
 
-[[ "$1" == "wrap" ]] && wrap $2
+[[ "$1" == "wrap" ]] && wrap "$2"
 
-[[ "$1" == "mix" ]] && mix $2
+[[ "$1" == "mix" ]] && mix "$2"
 
-[[ "$1" == "check" ]] && check $2
+[[ "$1" == "check" ]] && check "$2"
 
 [[ "$1" == "clean" ]] && clean
 
@@ -277,7 +280,7 @@ if [[ "$1" == "test" ]]; then
     }
 
     function checkmd5sum() {
-        [[ `md5sum "$1" | awk '{print $1}'` == "$2" ]] && echo "CHECK $3: [PASS] $1 md5sum" || echo "CHECK $3: [F***] $1 md5sum"
+        [[ $(md5sum "$1" | awk '{print $1}') == "$2" ]] && echo "CHECK $3: [PASS] $1 md5sum" || echo "CHECK $3: [F***] $1 md5sum"
     }
 
     function removeAll() {
@@ -285,19 +288,19 @@ if [[ "$1" == "test" ]]; then
     }
 
     function silenceRun() {
-        $@ 1>/dev/null 2>/dev/null
+        "$@" 1>/dev/null 2>/dev/null
     }
 
     # Preparation
-    mkdir -p $_TEST_PATH
-    cd $_TEST_PATH
+    mkdir -p "$_TEST_PATH"
+    cd "$_TEST_PATH" || return
     removeAll
     echo "001.raw" > IMG_001${_RAW_EXTENSION}
     echo "002.raw" > IMG_002${_RAW_EXTENSION}
     echo "002.raw.cooked" > IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}
 
-    [ `setExtension "new"` == "${_RAW_EXTENSION}${_RECIPE_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
-    [ `setExtension ` == "${_RAW_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
+    [ "$(setExtension "new")" == "${_RAW_EXTENSION}${_RECIPE_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
+    [ "$(setExtension)" == "${_RAW_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
 
     # TEST fry
     silenceRun fry
@@ -365,14 +368,14 @@ if [[ "$1" == "test" ]]; then
     checkmd5sum ${_CHECK_OUTPUT}/md5sum "7ea84f0f49a4b4055315d9ba66b828d6" 37
 
     # TEST unwrap
-    cd ${_FINAL_OUTPUT}
+    cd "${_FINAL_OUTPUT}" || return
     silenceRun unwrap
     checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 38
     checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 39
     checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION} 40
     checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 41
     checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 42
-    cd ${_TEST_PATH}
+    cd "${_TEST_PATH}" || return
 
     # TEST cookOneFile raw file
     removeAll

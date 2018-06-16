@@ -47,7 +47,7 @@ A script to combine raw file and jpg file into a editable jpg file
 
 - Cook one file:
 ```
-~$ cook-raw.sh onefile <filename>
+~$ cook-raw.sh cookfile <filename>
 ```
 
 - Run tests
