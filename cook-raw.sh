@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ###################
 #
@@ -90,7 +90,7 @@ function wrap() {
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
         zip=${_ZIP_OUTPUT}/${basename}.zip
 
-        echo "$n/$total Ziping file $raw..."
+        echo "$n/$total Zipping file $raw..."
 
         if [[ "$1" == "" ]]; then
             zip -j "$zip" "$raw" "$jpg"
