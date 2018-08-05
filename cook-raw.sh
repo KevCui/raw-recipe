@@ -198,6 +198,7 @@ function cook() {
 	fry
 	wrap
 	mix
+    clean
 	check
     clean
 }
@@ -207,6 +208,7 @@ function cookRecipe() {
     fry "recipe"
     wrap "recipe"
     mix "-cooked"
+    clean
     check "-cooked"
     clean
 }
