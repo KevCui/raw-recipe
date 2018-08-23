@@ -175,7 +175,7 @@ function unwrap() {
     echo "::UNWRAP::"
 	isCommandExist "unzip"
 
-	mkdir $_RAW_OUTPUT
+	mkdir -p $_RAW_OUTPUT
 
     total=$(findFile "$_JPG_EXTENSION" "" | wc -w)
     n=1
