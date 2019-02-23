@@ -54,3 +54,8 @@ A script to combine raw file and jpg file into a editable jpg file
 ```
 ~$ cook-raw.sh test
 ```
+
+- Show usage
+```
+~$ cook-raw.sh --help
+```

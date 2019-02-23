@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+#/ Usage:
+#/   ./cook-raw.sh [cook|cooked|cookfile|fry|wrap|mix|check|clean|unwrap|test] [file]
+#/
+
 ###################
 #
 # INGREDIENTS
@@ -25,6 +29,12 @@ _TEST_PATH="${_CURRENT_PATH}/test"
 # METHODS
 #
 ###################
+
+# Print usage
+function usage() {
+    grep '^#/' "$0" | cut -c4-
+    exit 0
+}
 
 # Check if command exist
 function isCommandExist() {
@@ -240,22 +250,33 @@ function cookOneFile() {
 #
 ###################
 
+expr "$*" : ".*--help" > /dev/null && usage
+
+#/     cook:            cook all raw files
 [[ "$1" == "cook" || "$1" == "" ]] && cook
 
+#/     cooked:          add "cooked" tag in all final files
 [[ "$1" == "cooked" ]] && cookRecipe
 
+#/     cookfile <file>: cook a specific file
 [[ "$1" == "cookfile" ]] && cookOneFile "$2"
 
+#/     fry <file>:      convert raw file to jpg
 [[ "$1" == "fry" ]] && fry "$2"
 
+#/     wrap <file>:     create zip file
 [[ "$1" == "wrap" ]] && wrap "$2"
 
+#/     mix <file>:      mix zip file and jpg file
 [[ "$1" == "mix" ]] && mix "$2"
 
+#/     check <file>:    run a check
 [[ "$1" == "check" ]] && check "$2"
 
+#/     clean:           remove temporary folders
 [[ "$1" == "clean" ]] && clean
 
+#/     unwrap:          extract raw files
 [[ "$1" == "unwrap" ]] && unwrap
 
 ###################
@@ -264,6 +285,7 @@ function cookOneFile() {
 #
 ###################
 
+#/     test:            run unit tests
 if [[ "$1" == "test" ]]; then
     function checkFileExist() {
         [ -f "$1" ] && echo "CHECK $2: [PASS] $1 exists" || echo "CHECK $2: [F***] $1 doesn't exist"
