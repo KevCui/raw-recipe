@@ -191,7 +191,7 @@ function unwrap() {
     n=1
 	for i in $(findFile "$_JPG_EXTENSION" ""); do
 		echo "$n/$total Extract file $i..."
-		unzip "$i" -d $_RAW_OUTPUT 2> /dev/null
+		unzip -o "$i" -d $_RAW_OUTPUT 2> /dev/null
 		n=$((n+1))
 	done
 	# clean redundant jpg files
