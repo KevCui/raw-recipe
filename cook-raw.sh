@@ -4,15 +4,8 @@
 #/   ./cook-raw.sh [cook|cooked|cookfile|fry|wrap|mix|check|clean|unwrap] [file]
 #/
 
-###################
-#
-# INGREDIENTS
-#
-###################
-
 set_var() {
     # Define variables/ingredients
-    _CURRENT_PATH="$(pwd)"
     _RAW_EXTENSION=".CR2"
     _RECIPE_EXTENSION=".xmp"
     _JPG_EXTENSION=".jpg"
@@ -26,12 +19,6 @@ set_var() {
     _FILE_SELECTED=""
 }
 
-###################
-#
-# METHODS
-#
-###################
-
 usage() {
     # Print usage
     grep '^#/' "$0" | cut -c4-
@@ -40,7 +27,7 @@ usage() {
 
 isCommandExist() {
     # Check if command exist
-    if [ ! "$(command -v $1)" ]; then
+    if [ ! "$(command -v "$1")" ]; then
         echo "$1 command doesn't exist!"
         exit 1
     fi
@@ -245,12 +232,6 @@ cookOneFile() {
 
     _FILE_SELECTED=""
 }
-
-###################
-#
-# COMMANDS
-#
-###################
 
 main() {
     set_var
