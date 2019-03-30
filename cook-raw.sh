@@ -30,22 +30,22 @@ _TEST_PATH="${_CURRENT_PATH}/test"
 #
 ###################
 
-# Print usage
-function usage() {
+usage() {
+    # Print usage
     grep '^#/' "$0" | cut -c4-
     exit 0
 }
 
-# Check if command exist
-function isCommandExist() {
+isCommandExist() {
+    # Check if command exist
     if [ ! "$(command -v "$1")" ]; then
         echo "$1 command doesn't exist!"
         exit 1
     fi
 }
 
-# Return file extension
-function setExtension() {
+setExtension() {
+    # Return file extension
     if [ "$1" == "" ]; then
         echo $_RAW_EXTENSION
     else
@@ -53,13 +53,13 @@ function setExtension() {
     fi
 }
 
-# Find file has certain extension and file name
-function findFile() {
+findFile() {
+    # Find file has certain extension and file name
     find ./*"$1" -maxdepth 1 -type f | grep "$2"
 }
 
-# Generate jpg file
-function fry() {
+fry() {
+    # Generate jpg file
     echo "::FRY::"
 	isCommandExist "dcraw"
 	isCommandExist "cjpeg"
@@ -83,8 +83,8 @@ function fry() {
 	done
 }
 
-# Create zip file
-function wrap() {
+wrap() {
+    # Create zip file
     echo "::WRAP::"
 	isCommandExist "zip"
 
@@ -114,8 +114,8 @@ function wrap() {
     done
 }
 
-# Mix zip and jpg
-function mix() {
+mix() {
+    # Mix zip and jpg
     echo "::MIX::"
 	mkdir -p $_FINAL_OUTPUT
 
@@ -138,8 +138,8 @@ function mix() {
     done
 }
 
-# Check cooked file
-function check() {
+check() {
+    # Check cooked file
     echo "::CHECK::"
     isCommandExist "unzip"
     isCommandExist "md5sum"
@@ -180,8 +180,8 @@ function check() {
     cd ..
 }
 
-# Extract raw files
-function unwrap() {
+unwrap() {
+    # Extract raw files
     echo "::UNWRAP::"
 	isCommandExist "unzip"
 
@@ -198,12 +198,12 @@ function unwrap() {
 	rm -rf ${_RAW_OUTPUT:?}/*${_JPG_EXTENSION}
 }
 
-# Remove temporary folders
-function clean() {
+clean() {
+    # Remove temporary folders
     rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} 2> /dev/null
 }
 
-function cook() {
+cook() {
     clean
 	fry
 	wrap
@@ -213,7 +213,7 @@ function cook() {
     clean
 }
 
-function cookRecipe() {
+cookRecipe() {
     clean
     fry "recipe"
     wrap "recipe"
@@ -223,7 +223,7 @@ function cookRecipe() {
     clean
 }
 
-function cookOneFile() {
+cookOneFile() {
     if [ ! -f "$1" ]; then
         echo "$1 doesn't exist."
         exit 1
@@ -250,34 +250,35 @@ function cookOneFile() {
 #
 ###################
 
-expr "$*" : ".*--help" > /dev/null && usage
+main() {
+    expr "$*" : ".*--help" > /dev/null && usage
 
-#/     cook:            cook all raw files
-[[ "$1" == "cook" || "$1" == "" ]] && cook
+    #/     cook:            cook all raw files
+    [[ "$1" == "cook" || "$1" == "" ]] && cook
 
-#/     cooked:          add "cooked" tag in all final files
-[[ "$1" == "cooked" ]] && cookRecipe
+    #/     cooked:          add "cooked" tag in all final files
+    [[ "$1" == "cooked" ]] && cookRecipe
 
-#/     cookfile <file>: cook a specific file
-[[ "$1" == "cookfile" ]] && cookOneFile "$2"
+    #/     cookfile <file>: cook a specific file
+    [[ "$1" == "cookfile" ]] && cookOneFile "$2"
 
-#/     fry <file>:      convert raw file to jpg
-[[ "$1" == "fry" ]] && fry "$2"
+    #/     fry <file>:      convert raw file to jpg
+    [[ "$1" == "fry" ]] && fry "$2"
 
-#/     wrap <file>:     create zip file
-[[ "$1" == "wrap" ]] && wrap "$2"
+    #/     wrap <file>:     create zip file
+    [[ "$1" == "wrap" ]] && wrap "$2"
 
-#/     mix <file>:      mix zip file and jpg file
-[[ "$1" == "mix" ]] && mix "$2"
+    #/     mix <file>:      mix zip file and jpg file
+    [[ "$1" == "mix" ]] && mix "$2"
 
-#/     check <file>:    run a check
-[[ "$1" == "check" ]] && check "$2"
+    #/     check <file>:    run a check
+    [[ "$1" == "check" ]] && check "$2"
 
-#/     clean:           remove temporary folders
-[[ "$1" == "clean" ]] && clean
+    #/     clean:           remove temporary folders
+    [[ "$1" == "clean" ]] && clean
 
-#/     unwrap:          extract raw files
-[[ "$1" == "unwrap" ]] && unwrap
+    #/     unwrap:          extract raw files
+    [[ "$1" == "unwrap" ]] && unwrap
 
 ###################
 #
@@ -287,31 +288,31 @@ expr "$*" : ".*--help" > /dev/null && usage
 
 #/     test:            run unit tests
 if [[ "$1" == "test" ]]; then
-    function checkFileExist() {
+    checkFileExist() {
         [ -f "$1" ] && echo "CHECK $2: [PASS] $1 exists" || echo "CHECK $2: [F***] $1 doesn't exist"
     }
 
-    function checkFileNotExist() {
+    checkFileNotExist() {
         [ -f "$1" ] && echo "CHECK $2: [F***] $1 exists" || echo "CHECK $2: [PASS] $1 doesn't exist"
     }
 
-    function checkFolderExist() {
+    checkFolderExist() {
         [ -d "$1" ] && echo "CHECK $2: [PASS] $1 exists" || echo "CHECK $2: [F***] $1 doesn't exist"
     }
 
-    function checkFolderNotExist() {
+    checkFolderNotExist() {
         [ -d "$1" ] && echo "CHECK $2: [F***] $1 exists" || echo "CHECK $2: [PASS] $1 doesn't exist"
     }
 
-    function checkmd5sum() {
+    checkmd5sum() {
         [[ $(md5sum "$1" | awk '{print $1}') == "$2" ]] && echo "CHECK $3: [PASS] $1 md5sum" || echo "CHECK $3: [F***] $1 md5sum"
     }
 
-    function removeAll() {
+    removeAll() {
         rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} ${_FINAL_OUTPUT} 2>/dev/null
     }
 
-    function silenceRun() {
+    silenceRun() {
         "$@" 1>/dev/null 2>/dev/null
     }
 
@@ -444,4 +445,9 @@ if [[ "$1" == "test" ]]; then
     checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 69
 
     echo "DONE"
+fi
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    main "$@"
 fi
