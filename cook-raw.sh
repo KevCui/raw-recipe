@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 #/ Usage:
-#/   ./cook-raw.sh [cook|cooked|cookfile|fry|wrap|mix|check|clean|unwrap|test] [file]
+#/   ./cook-raw.sh [cook|cooked|cookfile|fry|wrap|mix|check|clean|unwrap] [file]
 #/
 
 ###################
@@ -10,19 +10,21 @@
 #
 ###################
 
-_CURRENT_PATH="$(pwd)"
-_RAW_EXTENSION=".CR2"
-_RECIPE_EXTENSION=".xmp"
-_JPG_EXTENSION=".jpg"
-_JPG_QUALITY=85
-_RAW_OUTPUT="./raw"
-_JPG_OUTPUT="./jpg"
-_ZIP_OUTPUT="./zip"
-_FINAL_OUTPUT='./final'
-_CHECK_OUTPUT="./check"
-_MD5SUM_FILE="md5sum"
-_FILE_SELECTED=""
-_TEST_PATH="${_CURRENT_PATH}/test"
+set_var() {
+    # Define variables/ingredients
+    _CURRENT_PATH="$(pwd)"
+    _RAW_EXTENSION=".CR2"
+    _RECIPE_EXTENSION=".xmp"
+    _JPG_EXTENSION=".jpg"
+    _JPG_QUALITY=85
+    _RAW_OUTPUT="./raw"
+    _JPG_OUTPUT="./jpg"
+    _ZIP_OUTPUT="./zip"
+    _FINAL_OUTPUT='./final'
+    _CHECK_OUTPUT="./check"
+    _MD5SUM_FILE="md5sum"
+    _FILE_SELECTED=""
+}
 
 ###################
 #
@@ -38,7 +40,7 @@ usage() {
 
 isCommandExist() {
     # Check if command exist
-    if [ ! "$(command -v "$1")" ]; then
+    if [ ! "$(command -v $1)" ]; then
         echo "$1 command doesn't exist!"
         exit 1
     fi
@@ -251,6 +253,8 @@ cookOneFile() {
 ###################
 
 main() {
+    set_var
+
     expr "$*" : ".*--help" > /dev/null && usage
 
     #/     cook:            cook all raw files
@@ -279,173 +283,6 @@ main() {
 
     #/     unwrap:          extract raw files
     [[ "$1" == "unwrap" ]] && unwrap
-
-###################
-#
-# TESTS
-#
-###################
-
-#/     test:            run unit tests
-if [[ "$1" == "test" ]]; then
-    checkFileExist() {
-        [ -f "$1" ] && echo "CHECK $2: [PASS] $1 exists" || echo "CHECK $2: [F***] $1 doesn't exist"
-    }
-
-    checkFileNotExist() {
-        [ -f "$1" ] && echo "CHECK $2: [F***] $1 exists" || echo "CHECK $2: [PASS] $1 doesn't exist"
-    }
-
-    checkFolderExist() {
-        [ -d "$1" ] && echo "CHECK $2: [PASS] $1 exists" || echo "CHECK $2: [F***] $1 doesn't exist"
-    }
-
-    checkFolderNotExist() {
-        [ -d "$1" ] && echo "CHECK $2: [F***] $1 exists" || echo "CHECK $2: [PASS] $1 doesn't exist"
-    }
-
-    checkmd5sum() {
-        [[ $(md5sum "$1" | awk '{print $1}') == "$2" ]] && echo "CHECK $3: [PASS] $1 md5sum" || echo "CHECK $3: [F***] $1 md5sum"
-    }
-
-    removeAll() {
-        rm -r ${_CHECK_OUTPUT} ${_ZIP_OUTPUT} ${_JPG_OUTPUT} ${_FINAL_OUTPUT} 2>/dev/null
-    }
-
-    silenceRun() {
-        "$@" 1>/dev/null 2>/dev/null
-    }
-
-    # Preparation
-    mkdir -p "$_TEST_PATH"
-    cd "$_TEST_PATH" || return
-    removeAll
-    echo "001.raw" > IMG_001${_RAW_EXTENSION}
-    echo "002.raw" > IMG_002${_RAW_EXTENSION}
-    echo "002.raw.cooked" > IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}
-
-    [ "$(setExtension "new")" == "${_RAW_EXTENSION}${_RECIPE_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
-    [ "$(setExtension)" == "${_RAW_EXTENSION}" ] && echo "CHECK 00: [PASS] setExtension" || echo "CHECK 00: [F***] setExtension"
-
-    # TEST fry
-    silenceRun fry
-    checkFileExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 01
-    checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION} 02
-
-    # TEST wrap
-    silenceRun wrap
-    checkFileExist ${_ZIP_OUTPUT}/IMG_001.zip 03
-    checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip 04
-
-    # TEST mix
-    silenceRun mix
-    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 05
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 06
-
-    # TEST check
-    silenceRun check
-    checkFileExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 07
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION} 08
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 09
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 10
-    checkFileExist ${_CHECK_OUTPUT}/IMG_001${_JPG_EXTENSION} 11
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION} 12
-    checkmd5sum ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} "92489c7597f2eac4731a3e21ab8f28ba" 13
-    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 14
-    checkmd5sum ${_CHECK_OUTPUT}/md5sum "7680e1205ea004a77df4ce44f5ad353e" 15
-
-    # TEST clean
-    silenceRun clean
-    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 16
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 17
-    checkFolderNotExist ${_JPG_OUTPUT} 18
-    checkFolderNotExist ${_ZIP_OUTPUT} 19
-    checkFolderNotExist ${_CHECK_OUTPUT} 20
-
-    # TEST fry $1
-    removeAll
-    silenceRun fry "recipe"
-    checkFileNotExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION} 21
-    checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION} 22
-
-    # TEST wrap $1
-    silenceRun wrap "recipe"
-    checkFileNotExist ${_ZIP_OUTPUT}/IMG_001.zip 23
-    checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip 24
-
-    # TEST mix $1
-    silenceRun mix "-cooked"
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 25
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 26
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 27
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 28
-
-    # TEST check $1
-    silenceRun check "-cooked"
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 29
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION} 30
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 31
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 32
-    checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_JPG_EXTENSION} 33
-    checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION} 34
-    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 35
-    checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 36
-    checkmd5sum ${_CHECK_OUTPUT}/md5sum "7ea84f0f49a4b4055315d9ba66b828d6" 37
-
-    # TEST unwrap
-    cd "${_FINAL_OUTPUT}" || return
-    silenceRun unwrap
-    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 38
-    checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} 39
-    checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION} 40
-    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} "bbd7831aad5d635f8a84314103b39f65" 41
-    checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} "a3881ec11cbe57244631037cb313f686" 42
-    cd "${_TEST_PATH}" || return
-
-    # TEST cookOneFile raw file
-    removeAll
-    silenceRun cookOneFile "IMG_001${_RAW_EXTENSION}"
-    checkFolderNotExist ${_JPG_OUTPUT} 43
-    checkFolderNotExist ${_ZIP_OUTPUT} 44
-    checkFolderNotExist ${_CHECK_OUTPUT} 45
-    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 46
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 47
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 48
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 49
-
-    # TEST cookOneFile recipe file
-    removeAll
-    silenceRun cookOneFile "IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}"
-    checkFolderNotExist ${_JPG_OUTPUT} 50
-    checkFolderNotExist ${_ZIP_OUTPUT} 51
-    checkFolderNotExist ${_CHECK_OUTPUT} 52
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 53
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 54
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 55
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 56
-
-    # TEST cook
-    removeAll
-    silenceRun cook
-    checkFolderNotExist ${_JPG_OUTPUT} 57
-    checkFolderNotExist ${_ZIP_OUTPUT} 58
-    checkFolderNotExist ${_CHECK_OUTPUT} 59
-    checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 60
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 61
-
-    # TEST cookRecipe
-    removeAll
-    silenceRun cookRecipe
-    checkFolderNotExist ${_JPG_OUTPUT} 63
-    checkFolderNotExist ${_ZIP_OUTPUT} 64
-    checkFolderNotExist ${_CHECK_OUTPUT} 65
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION} 66
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable-cooked${_JPG_EXTENSION} 67
-    checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION} 68
-    checkFileNotExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION} 69
-
-    echo "DONE"
-fi
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
