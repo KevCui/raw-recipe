@@ -52,7 +52,7 @@ A script to combine raw file and jpg file into a editable jpg file
 
 - Run tests
 ```
-~$ cook-raw.sh test
+~$ bats test/cook-raw.bats
 ```
 
 - Show usage
