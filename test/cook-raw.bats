@@ -4,20 +4,37 @@
 #   ~$ bats test/cow-raw.bats
 #
 
+BATS_TEST_SKIPPED=
+
 setup() {
     _SCRIPT="cook-raw.sh"
-    _TEST_OUTPUT="$(pwd)/test/"
-    source "$_SCRIPT"
-    set_var
+    _HOME="$(pwd)"
+    _TEST_OUTPUT="$_HOME/test"
+    _RAW_EXTENSION=".CR2"
+    _RECIPE_EXTENSION=".xmp"
+    _JPG_EXTENSION=".jpg"
+    _JPG_QUALITY=85
+    _JPG_OUTPUT="$_TEST_OUTPUT/jpg"
+    _ZIP_OUTPUT="$_TEST_OUTPUT/zip"
+    _FINAL_OUTPUT="$_TEST_OUTPUT/final"
+    _CHECK_OUTPUT="$_TEST_OUTPUT/check"
+    _MD5SUM_FILE="md5sum"
+    _FILE_SELECTED=""
+
+    teardown
+
     echo "001.raw" > "$_TEST_OUTPUT/IMG_001${_RAW_EXTENSION}"
     echo "002.raw" > "$_TEST_OUTPUT/IMG_002${_RAW_EXTENSION}"
     echo "002.raw.cooked" > "$_TEST_OUTPUT/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}"
+
+    source "$_SCRIPT"
 }
 
 teardown() {
     cd "$_TEST_OUTPUT"
     rm -f IMG_001* IMG_002*
     rm -rf "$_CHECK_OUTPUT" "$_ZIP_OUTPUT" "$_JPG_OUTPUT" "$_FINAL_OUTPUT" 2>/dev/null
+    cd "$_HOME"
 }
 
 checkFileExist() {
@@ -54,6 +71,7 @@ checkmd5sum() {
 @test "CHECK: setExtension() default extension" {
     _RAW_EXTENSION="rawextension"
     run setExtension
+    [ "$status" -eq 0 ]
     [ "$output" = "$_RAW_EXTENSION" ]
 }
 
@@ -61,6 +79,7 @@ checkmd5sum() {
     _RAW_EXTENSION="rawextension"
     _RECIPE_EXTENSION="recipe"
     run setExtension true
+    [ "$status" -eq 0 ]
     [ "$output" = "${_RAW_EXTENSION}${_RECIPE_EXTENSION}" ]
 }
 
@@ -74,10 +93,11 @@ checkmd5sum() {
 @test "CHECK: findFile() no matches" {
     cd $_TEST_OUTPUT
     run findFile "CR2" "filedoesnotexist"
+    [ "$status" -eq 1 ]
     [ "$output" = "" ]
 }
 
-@test "CHECK: clearn()" {
+@test "CHECK: clean()" {
     mkdir -p "$_CHECK_OUTPUT"
     mkdir -p "$_ZIP_OUTPUT"
     mkdir -p "$_JPG_OUTPUT"
@@ -85,12 +105,16 @@ checkmd5sum() {
     [ "$(checkFolderExist $_ZIP_OUTPUT)" = "PASS" ]
     [ "$(checkFolderExist $_JPG_OUTPUT)" = "PASS" ]
     run clean
+    [ "$status" -eq 0 ]
     [ "$(checkFolderNotExist $_CHECK_OUTPUT)" = "PASS" ]
     [ "$(checkFolderNotExist $_ZIP_OUTPUT)" = "PASS" ]
     [ "$(checkFolderNotExist $_JPG_OUTPUT)" = "PASS" ]
 }
 
 @test "CHECK: cook-raw.sh clean" {
+    set_var() {
+        echo "" > /dev/null
+    }
     mkdir -p "$_CHECK_OUTPUT"
     mkdir -p "$_ZIP_OUTPUT"
     mkdir -p "$_JPG_OUTPUT"
@@ -106,6 +130,7 @@ checkmd5sum() {
 @test "CHECK: fry()" {
     cd "$_TEST_OUTPUT"
     run fry
+    [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION})" = "PASS" ]
 }
@@ -121,6 +146,7 @@ checkmd5sum() {
     cd "$_TEST_OUTPUT"
     run main fry
     run wrap
+    [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_ZIP_OUTPUT}/IMG_001.zip)" = "PASS" ]
     [ "$(checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip)" = "PASS" ]
 }
@@ -138,6 +164,7 @@ checkmd5sum() {
     run main fry
     run main wrap
     run mix
+    [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable${_JPG_EXTENSION})" = "PASS" ]
 }
@@ -159,6 +186,7 @@ checkmd5sum() {
     run main wrap
     run main mix
     run check
+    [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION})" = "PASS" ]
     [ "$(checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION})" = "PASS" ]
@@ -188,6 +216,7 @@ checkmd5sum() {
 }
 
 @test "CHECK: cook-raw.sh unwrap" {
+    _RAW_OUTPUT="./raw"
     cd "$_TEST_OUTPUT"
     run main fry "recipe"
     run main wrap "recipe"
@@ -195,6 +224,7 @@ checkmd5sum() {
     run main check "-cooked"
     cd "$_FINAL_OUTPUT"
     run main unwrap
+    [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]
     [ "$(checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION})" = "PASS" ]
@@ -205,6 +235,7 @@ checkmd5sum() {
 @test "CHECK: cookOneFile() raw file" {
     cd "$_TEST_OUTPUT"
     run cookOneFile "IMG_001${_RAW_EXTENSION}"
+    [ "$status" -eq 0 ]
     [ "$(checkFolderNotExist ${_JPG_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_ZIP_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_CHECK_OUTPUT})" = "PASS" ]
@@ -217,6 +248,7 @@ checkmd5sum() {
 @test "CHECK: cookOneFile() recipe file" {
     cd "$_TEST_OUTPUT"
     run cookOneFile "IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}"
+    [ "$status" -eq 0 ]
     [ "$(checkFolderNotExist ${_JPG_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_ZIP_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_CHECK_OUTPUT})" = "PASS" ]
@@ -229,6 +261,7 @@ checkmd5sum() {
 @test "CHECK: cook()" {
     cd "$_TEST_OUTPUT"
     run cook
+    [ "$status" -eq 0 ]
     [ "$(checkFolderNotExist ${_JPG_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_ZIP_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_CHECK_OUTPUT})" = "PASS" ]
@@ -241,6 +274,7 @@ checkmd5sum() {
 @test "CHECK: cookRecipe()" {
     cd "$_TEST_OUTPUT"
     run cookRecipe
+    [ "$status" -eq 0 ]
     [ "$(checkFolderNotExist ${_JPG_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_ZIP_OUTPUT})" = "PASS" ]
     [ "$(checkFolderNotExist ${_CHECK_OUTPUT})" = "PASS" ]
