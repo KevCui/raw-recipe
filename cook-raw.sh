@@ -178,18 +178,18 @@ check() {
 unwrap() {
     # Extract raw files
     echo "::UNWRAP::" >&2
-	isCommandExist "unzip"
+    isCommandExist "unzip"
 
-	mkdir -p $_RAW_OUTPUT
+    mkdir -p $_RAW_OUTPUT
 
     total=$(findFile "$_JPG_EXTENSION" "" | wc -w)
     n=1
-	for i in $(findFile "$_JPG_EXTENSION" ""); do
-		echo "$n/$total Extract file $i..." >&2
-		unzip -o "$i" -d $_RAW_OUTPUT 2> /dev/null || true
-		n=$((n+1))
-	done
-	# clean redundant jpg files
+    for i in $(findFile "$_JPG_EXTENSION" ""); do
+        echo "$n/$total Extract file $i..." >&2
+        unzip -o "$i" -d $_RAW_OUTPUT 2> /dev/null || true
+        n=$((n+1))
+    done
+    # clean redundant jpg files
     rm -rf ${_RAW_OUTPUT:?}/*${_JPG_EXTENSION}
 }
 
