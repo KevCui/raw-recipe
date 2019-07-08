@@ -22,17 +22,11 @@ setup() {
     _FILE_SELECTED=""
 
     teardown
-
-    echo "001.raw" > "$_TEST_OUTPUT/IMG_001${_RAW_EXTENSION}"
-    echo "002.raw" > "$_TEST_OUTPUT/IMG_002${_RAW_EXTENSION}"
-    echo "002.raw.cooked" > "$_TEST_OUTPUT/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION}"
-
     source "$_SCRIPT"
 }
 
 teardown() {
     cd "$_TEST_OUTPUT"
-    rm -f IMG_001* IMG_002*
     rm -rf "$_CHECK_OUTPUT" "$_ZIP_OUTPUT" "$_JPG_OUTPUT" "$_FINAL_OUTPUT" 2>/dev/null
     cd "$_HOME"
 }
@@ -193,9 +187,9 @@ checkmd5sum() {
     [ "$(checkFileNotExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_001${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION})" = "PASS" ]
-    [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} 92489c7597f2eac4731a3e21ab8f28ba)" = "PASS" ]
-    [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} bbd7831aad5d635f8a84314103b39f65)" = "PASS" ]
-    [ "$(checkmd5sum ${_CHECK_OUTPUT}/md5sum 7680e1205ea004a77df4ce44f5ad353e)" = "PASS" ]
+    [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION} f9f254018f758ac08632873206a2e21c)" = "PASS" ]
+    [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 7278246cf26b76e0ca398e7f739b527e)" = "PASS" ]
+    [ "$(checkmd5sum ${_CHECK_OUTPUT}/md5sum 8eee78e6125e05058d704586f516c273)" = "PASS" ]
 }
 
 @test "CHECK: cook-raw.sh check -cooked" {
@@ -210,9 +204,9 @@ checkmd5sum() {
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]
     [ "$(checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_002${_JPG_EXTENSION})" = "PASS" ]
-    [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} bbd7831aad5d635f8a84314103b39f65)" = "PASS" ]
+    [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION} 7278246cf26b76e0ca398e7f739b527e)" = "PASS" ]
     [ "$(checkmd5sum ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} a3881ec11cbe57244631037cb313f686)" = "PASS" ]
-    [ "$(checkmd5sum ${_CHECK_OUTPUT}/md5sum 7ea84f0f49a4b4055315d9ba66b828d6)" = "PASS" ]
+    [ "$(checkmd5sum ${_CHECK_OUTPUT}/md5sum ae1e251b22e8b4c635726faa52f90c39)" = "PASS" ]
 }
 
 @test "CHECK: cook-raw.sh unwrap" {
@@ -223,12 +217,13 @@ checkmd5sum() {
     run main mix "-cooked"
     run main check "-cooked"
     cd "$_FINAL_OUTPUT"
+    cp ./* ~
     run main unwrap
     [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]
     [ "$(checkFileNotExist ${_RAW_OUTPUT}/IMG_002${_JPG_EXTENSION})" = "PASS" ]
-    [ "$(checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} bbd7831aad5d635f8a84314103b39f65)" = "PASS" ]
+    [ "$(checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION} 7278246cf26b76e0ca398e7f739b527e)" = "PASS" ]
     [ "$(checkmd5sum ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION} a3881ec11cbe57244631037cb313f686)" = "PASS" ]
 }
 
