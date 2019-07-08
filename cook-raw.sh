@@ -56,39 +56,39 @@ findFile() {
 fry() {
     # Generate jpg file
     echo "::FRY::" >&2
-	isCommandExist "dcraw"
-	isCommandExist "cjpeg"
+    isCommandExist "dcraw"
+    isCommandExist "cjpeg"
 
-	mkdir -p $_JPG_OUTPUT
+    mkdir -p $_JPG_OUTPUT
 
     extension=$(setExtension "${1:-}")
     total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
-	n=1
-	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
+    n=1
+    for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
 
-		echo "$n/$total Progressing file $raw..." >&2
+        echo "$n/$total Progressing file $raw..." >&2
 
-		# convert raw to jpg
-		dcraw -c -w "$raw" | cjpeg -quality $_JPG_QUALITY -optimize -progressive > "$jpg" || true
+        # convert raw to jpg
+        dcraw -c -w "$raw" | cjpeg -quality $_JPG_QUALITY -optimize -progressive > "$jpg" || true
 
-		n=$((n+1))
-	done
+        n=$((n+1))
+    done
 }
 
 wrap() {
     # Create zip file
     echo "::WRAP::" >&2
-	isCommandExist "zip"
+    isCommandExist "zip"
 
-	mkdir -p $_ZIP_OUTPUT
+    mkdir -p $_ZIP_OUTPUT
 
     extension=$(setExtension "${1:-}")
     total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
     n=1
-	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
+    for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         recipe=${basename}${_RAW_EXTENSION}${_RECIPE_EXTENSION}
@@ -112,12 +112,12 @@ wrap() {
 mix() {
     # Mix zip and jpg
     echo "::MIX::" >&2
-	mkdir -p $_FINAL_OUTPUT
+    mkdir -p $_FINAL_OUTPUT
 
     extension=$(setExtension "${1:-}")
     total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
     n=1
-	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
+    for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         jpg=${_JPG_OUTPUT}/${basename}${_JPG_EXTENSION}
@@ -147,7 +147,7 @@ check() {
     extension=$(setExtension "${1:-}")
     total=$(findFile "$extension" "$_FILE_SELECTED" | wc -w)
     n=1
-	for i in $(findFile "$extension" "$_FILE_SELECTED"); do
+    for i in $(findFile "$extension" "$_FILE_SELECTED"); do
         basename=$(basename "$i" "$extension")
         raw=${basename}${_RAW_EXTENSION}
         recipe=${basename}${_RAW_EXTENSION}${_RECIPE_EXTENSION}
@@ -200,11 +200,11 @@ clean() {
 
 cook() {
     clean
-	fry
-	wrap
-	mix
+    fry
+    wrap
+    mix
     clean
-	check
+    check
     clean
 }
 
