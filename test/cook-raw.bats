@@ -109,13 +109,16 @@ checkmd5sum() {
     set_var() {
         echo "" > /dev/null
     }
+    set_args() {
+        _CMD="clean"
+    }
     mkdir -p "$_CHECK_OUTPUT"
     mkdir -p "$_ZIP_OUTPUT"
     mkdir -p "$_JPG_OUTPUT"
     [ "$(checkFolderExist $_CHECK_OUTPUT)" = "PASS" ]
     [ "$(checkFolderExist $_ZIP_OUTPUT)" = "PASS" ]
     [ "$(checkFolderExist $_JPG_OUTPUT)" = "PASS" ]
-    run main clean
+    run main
     [ "$(checkFolderNotExist $_CHECK_OUTPUT)" = "PASS" ]
     [ "$(checkFolderNotExist $_ZIP_OUTPUT)" = "PASS" ]
     [ "$(checkFolderNotExist $_JPG_OUTPUT)" = "PASS" ]
@@ -130,15 +133,19 @@ checkmd5sum() {
 }
 
 @test "CHECK: cook-raw.sh fry recipe" {
+    set_args() {
+        _CMD="fry"
+        _FILE="recipe"
+    }
     cd "$_TEST_OUTPUT"
-    run main fry "recipe"
+    run main
     [ "$(checkFileNotExist ${_JPG_OUTPUT}/IMG_001${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_JPG_OUTPUT}/IMG_002${_JPG_EXTENSION})" = "PASS" ]
 }
 
 @test "CHECK: wrap()" {
     cd "$_TEST_OUTPUT"
-    run main fry
+    run fry
     run wrap
     [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_ZIP_OUTPUT}/IMG_001.zip)" = "PASS" ]
@@ -147,16 +154,24 @@ checkmd5sum() {
 
 @test "CHECK: cook-raw.sh wrap recipe" {
     cd "$_TEST_OUTPUT"
-    run main fry "recipe"
-    run main wrap "recipe"
+    set_args() {
+        _CMD="fry"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="wrap"
+        _FILE="recipe"
+    }
+    run main
     [ "$(checkFileNotExist ${_ZIP_OUTPUT}/IMG_001.zip)" = "PASS" ]
     [ "$(checkFileExist ${_ZIP_OUTPUT}/IMG_002.zip)" = "PASS" ]
 }
 
 @test "CHECK: mix()" {
     cd "$_TEST_OUTPUT"
-    run main fry
-    run main wrap
+    run fry
+    run wrap
     run mix
     [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION})" = "PASS" ]
@@ -165,9 +180,21 @@ checkmd5sum() {
 
 @test "CHECK: cook-raw.sh mix -cooked" {
     cd "$_TEST_OUTPUT"
-    run main fry "recipe"
-    run main wrap "recipe"
-    run main mix "-cooked"
+    set_args() {
+        _CMD="fry"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="wrap"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="mix"
+        _FILE="-cooked"
+    }
+    run main
     [ "$(checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-cooked${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileNotExist ${_FINAL_OUTPUT}/IMG_001-editable${_JPG_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_FINAL_OUTPUT}/IMG_002-editable-cooked${_JPG_EXTENSION})" = "PASS" ]
@@ -176,9 +203,9 @@ checkmd5sum() {
 
 @test "CHECK: check()" {
     cd "$_TEST_OUTPUT"
-    run main fry
-    run main wrap
-    run main mix
+    run fry
+    run wrap
+    run mix
     run check
     [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION})" = "PASS" ]
@@ -194,10 +221,26 @@ checkmd5sum() {
 
 @test "CHECK: cook-raw.sh check -cooked" {
     cd "$_TEST_OUTPUT"
-    run main fry "recipe"
-    run main wrap "recipe"
-    run main mix "-cooked"
-    run main check "-cooked"
+    set_args() {
+        _CMD="fry"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="wrap"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="mix"
+        _FILE="-cooked"
+    }
+    run main
+    set_args() {
+        _CMD="check"
+        _FILE="-cooked"
+    }
+    run main
     [ "$(checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION})" = "PASS" ]
     [ "$(checkFileNotExist ${_CHECK_OUTPUT}/IMG_001${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_CHECK_OUTPUT}/IMG_002${_RAW_EXTENSION})" = "PASS" ]
@@ -212,13 +255,32 @@ checkmd5sum() {
 @test "CHECK: cook-raw.sh unwrap" {
     _RAW_OUTPUT="./raw"
     cd "$_TEST_OUTPUT"
-    run main fry "recipe"
-    run main wrap "recipe"
-    run main mix "-cooked"
-    run main check "-cooked"
+    set_args() {
+        _CMD="fry"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="wrap"
+        _FILE="recipe"
+    }
+    run main
+    set_args() {
+        _CMD="mix"
+        _FILE="-cooked"
+    }
+    run main
+    set_args() {
+        _CMD="check"
+        _FILE="-cooked"
+    }
+    run main
     cd "$_FINAL_OUTPUT"
     cp ./* ~
-    run main unwrap
+    set_args() {
+        _CMD="unwrap"
+    }
+    run main
     [ "$status" -eq 0 ]
     [ "$(checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION})" = "PASS" ]
     [ "$(checkFileExist ${_RAW_OUTPUT}/IMG_002${_RAW_EXTENSION}${_RECIPE_EXTENSION})" = "PASS" ]

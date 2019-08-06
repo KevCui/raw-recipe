@@ -1,15 +1,33 @@
 #!/usr/bin/env bash
-
+#
 #/ Usage:
-#/   ./cook-raw.sh [cook|cooked|cookfile|fry|wrap|mix|check|clean|unwrap] [file]
+#/   ./cook-raw.sh [--command] [file] [--option]
 #/
+#/ Command:
+#/   --cook:                  cook all raw files
+#/   --cooked:                add "cooked" tag in all final files
+#/   --cookfile <file>:       cook a specific file
+#/   --fry <file>:            convert raw file to jpg
+#/   --wrap <file>:           create zip file
+#/   --mix <file>:            mix zip file and jpg file
+#/   --check <file>:          run a check
+#/   --clean:                 remove temporary folders
+#/   --unwrap:                extract raw files
+#/
+#/ Option:
+#/   --extension <extension>: raw file extension name
 
 set -e
 set -u
 
+usage() {
+    # Display usage message
+    printf "\n%b\n" "$(grep '^#/' "$0" | cut -c4-)" && exit 0
+}
+
 set_var() {
     # Define variables/ingredients
-    _RAW_EXTENSION=".CR2"
+    [[ -z "${_RAW_EXTENSION:-}" ]] && _RAW_EXTENSION=".CR2"
     _RECIPE_EXTENSION=".xmp"
     _JPG_EXTENSION=".jpg"
     _JPG_QUALITY=85
@@ -20,12 +38,6 @@ set_var() {
     _CHECK_OUTPUT="./check"
     _MD5SUM_FILE="md5sum"
     _FILE_SELECTED=""
-}
-
-usage() {
-    # Print usage
-    grep '^#/' "$0" | cut -c4-
-    exit 0
 }
 
 isCommandExist() {
@@ -237,42 +249,91 @@ cookOneFile() {
     _FILE_SELECTED=""
 }
 
-main() {
-    set_var
-
-    local cmd
-    local file
-    cmd=${1:-}
-    file=${2:-}
-
+set_args() {
+    # Declare arguments
     expr "$*" : ".*--help" > /dev/null && usage
 
-#/     cook:            cook all raw files
-    [[ "$cmd" == "cook" || "$cmd" == "" ]] && cook
+    local key positional
 
-#/     cooked:          add "cooked" tag in all final files
-    [[ "$cmd" == "cooked" ]] && cookRecipe
+    positional=()
+    while [[ $# -gt 0 ]]; do
+        key="$1"
 
-#/     cookfile <file>: cook a specific file
-    [[ "$cmd" == "cookfile" ]] && cookOneFile "$file"
+        case $key in
+            --cook)
+                _CMD="cook"
+                shift
+                ;;
+            --cooked)
+                _CMD="cooked"
+                shift
+                ;;
+            --cookfile)
+                _CMD="cookfile"
+                _FILE="${2:-}"
+                shift
+                shift
+                ;;
+            --fry)
+                _CMD="fry"
+                _FILE="${2:-}"
+                shift
+                shift
+                ;;
+            --wrap)
+                _CMD="wrap"
+                _FILE="${2:-}"
+                shift
+                shift
+                ;;
+            --mix)
+                _CMD="mix"
+                _FILE="${2:-}"
+                shift
+                shift
+                ;;
+            --check)
+                _CMD="check"
+                _FILE="${2:-}"
+                shift
+                shift
+                ;;
+            --clean)
+                _CMD="clean"
+                shift
+                ;;
+            --unwrap)
+                _CMD="unwrap"
+                shift
+                ;;
+            --extension)
+                _RAW_EXTENSION="$2"
+                shift
+                shift
+                ;;
+            *)
+                positional+=("$1")
+                shift
+            ;;
+        esac
+    done
+    set -- "${positional[@]}"
+}
 
-#/     fry <file>:      convert raw file to jpg
-    [[ "$cmd" == "fry" ]] && fry "$file"
+main() {
+    set_args "$@"
+    set_var
 
-#/     wrap <file>:     create zip file
-    [[ "$cmd" == "wrap" ]] && wrap "$file"
-
-#/     mix <file>:      mix zip file and jpg file
-    [[ "$cmd" == "mix" ]] && mix "$file"
-
-#/     check <file>:    run a check
-    [[ "$cmd" == "check" ]] && check "$file"
-
-#/     clean:           remove temporary folders
-    [[ "$cmd" == "clean" ]] && clean
-
-#/     unwrap:          extract raw files
-    [[ "$cmd" == "unwrap" ]] && unwrap
+    [[ -z "${_CMD:-}" ]] && cook
+    [[ "${_CMD:-}" == "cook" ]] && cook
+    [[ "${_CMD:-}" == "cooked" ]] && cookRecipe
+    [[ "${_CMD:-}" == "cookfile" ]] && cookOneFile "$_FILE"
+    [[ "${_CMD:-}" == "fry" ]] && fry "$_FILE"
+    [[ "${_CMD:-}" == "wrap" ]] && wrap "$_FILE"
+    [[ "${_CMD:-}" == "mix" ]] && mix "$_FILE"
+    [[ "${_CMD:-}" == "check" ]] && check "$_FILE"
+    [[ "${_CMD:-}" == "clean" ]] && clean
+    [[ "${_CMD:-}" == "unwrap" ]] && unwrap
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
