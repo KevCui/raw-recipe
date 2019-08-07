@@ -276,7 +276,6 @@ checkmd5sum() {
     }
     run main
     cd "$_FINAL_OUTPUT"
-    cp ./* ~
     set_args() {
         _CMD="unwrap"
     }
