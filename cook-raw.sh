@@ -7,10 +7,10 @@
 #/   --cook:                  cook all raw files
 #/   --cooked:                add "cooked" tag in all final files
 #/   --cookfile <file>:       cook a specific file
-#/   --fry <file>:            convert raw file to jpg
-#/   --wrap <file>:           create zip file
-#/   --mix <file>:            mix zip file and jpg file
-#/   --check <file>:          run a check
+#/   --fry:                   convert raw file to jpg
+#/   --wrap:                  create zip file
+#/   --mix:                   mix zip file and jpg file
+#/   --check:                 run a check
 #/   --clean:                 remove temporary folders
 #/   --unwrap:                extract raw files
 #/
@@ -276,26 +276,22 @@ set_args() {
                 ;;
             --fry)
                 _CMD="fry"
-                _FILE="${2:-}"
-                shift
+                _FILE=""
                 shift
                 ;;
             --wrap)
                 _CMD="wrap"
-                _FILE="${2:-}"
-                shift
+                _FILE=""
                 shift
                 ;;
             --mix)
                 _CMD="mix"
-                _FILE="${2:-}"
-                shift
+                _FILE=""
                 shift
                 ;;
             --check)
                 _CMD="check"
-                _FILE="${2:-}"
-                shift
+                _FILE=""
                 shift
                 ;;
             --clean)
