@@ -141,6 +141,12 @@ mix() {
         # create final jpg
         cat "$jpg" "$zip" > "$final"
 
+        # update Create Date of final jpg
+        odate="$(exiftool "$raw" | grep 'Create Date' | head -1)"
+        if [[ -n "${odate:-}" ]]; then
+            exiftool -overwrite_original "-CreateDate=${odate}" "$final"
+        fi
+
         n=$((n+1))
     done
 }
